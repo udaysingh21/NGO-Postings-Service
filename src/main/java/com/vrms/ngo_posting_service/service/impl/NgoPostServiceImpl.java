@@ -1,0 +1,157 @@
+package com.vrms.ngo_posting_service.service.impl;
+
+import com.vrms.ngo_posting_service.dto.CreateNgoPostRequest;
+import com.vrms.ngo_posting_service.dto.NgoPostResponse;
+import com.vrms.ngo_posting_service.dto.UpdateNgoPostRequest;
+import com.vrms.ngo_posting_service.entity.NgoPost;
+import com.vrms.ngo_posting_service.entity.PostStatus;
+import com.vrms.ngo_posting_service.exception.ResourceNotFoundException;
+import com.vrms.ngo_posting_service.exception.UnauthorizedException;
+import com.vrms.ngo_posting_service.repository.NgoPostRepository;
+import com.vrms.ngo_posting_service.service.NgoPostService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class NgoPostServiceImpl implements NgoPostService {
+
+    private final NgoPostRepository repository;
+
+    @Override
+    public NgoPostResponse createPost(CreateNgoPostRequest request, Long ngoId) {
+        NgoPost post = new NgoPost();
+        post.setTitle(request.getTitle());
+        post.setDescription(request.getDescription());
+        post.setDomain(request.getDomain());
+        post.setLocation(request.getLocation());
+        post.setCity(request.getCity());
+        post.setState(request.getState());
+        post.setCountry(request.getCountry());
+        post.setEffortRequired(request.getEffortRequired());
+        post.setVolunteersNeeded(request.getVolunteersNeeded());
+        post.setStartDate(request.getStartDate());
+        post.setEndDate(request.getEndDate());
+        post.setNgoId(ngoId);
+        post.setContactEmail(request.getContactEmail());
+        post.setContactPhone(request.getContactPhone());
+        post.setStatus(PostStatus.ACTIVE);
+
+        NgoPost saved = repository.save(post);
+        return mapToResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NgoPostResponse getPostById(Long id) {
+        NgoPost post = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
+        return mapToResponse(post);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NgoPostResponse> getAllPosts(Pageable pageable) {
+        return repository.findByStatus(PostStatus.ACTIVE, pageable)
+            .map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NgoPostResponse> getPostsByNgoId(Long ngoId, Pageable pageable) {
+        return repository.findByNgoId(ngoId, pageable)
+            .map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NgoPostResponse> getPostsByDomain(String domain, Pageable pageable) {
+        return repository.findByDomain(domain, pageable)
+            .map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NgoPostResponse> getPostsByCity(String city, Pageable pageable) {
+        return repository.findByCity(city, pageable)
+            .map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NgoPostResponse> searchPosts(String keyword, Pageable pageable) {
+        return repository.searchPosts(keyword, PostStatus.ACTIVE, pageable)
+            .map(this::mapToResponse);
+    }
+
+    @Override
+    public NgoPostResponse updatePost(Long id, UpdateNgoPostRequest request, Long ngoId) {
+        NgoPost post = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
+
+        // Verify ownership
+        if (!post.getNgoId().equals(ngoId)) {
+            throw new UnauthorizedException("You are not authorized to update this post");
+        }
+
+        // Update fields if provided
+        if (request.getTitle() != null) post.setTitle(request.getTitle());
+        if (request.getDescription() != null) post.setDescription(request.getDescription());
+        if (request.getDomain() != null) post.setDomain(request.getDomain());
+        if (request.getLocation() != null) post.setLocation(request.getLocation());
+        if (request.getCity() != null) post.setCity(request.getCity());
+        if (request.getState() != null) post.setState(request.getState());
+        if (request.getCountry() != null) post.setCountry(request.getCountry());
+        if (request.getEffortRequired() != null) post.setEffortRequired(request.getEffortRequired());
+        if (request.getVolunteersNeeded() != null) post.setVolunteersNeeded(request.getVolunteersNeeded());
+        if (request.getStartDate() != null) post.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) post.setEndDate(request.getEndDate());
+        if (request.getContactEmail() != null) post.setContactEmail(request.getContactEmail());
+        if (request.getContactPhone() != null) post.setContactPhone(request.getContactPhone());
+        if (request.getStatus() != null) post.setStatus(request.getStatus());
+
+        NgoPost updated = repository.save(post);
+        return mapToResponse(updated);
+    }
+
+    @Override
+    public void deletePost(Long id, Long ngoId) {
+        NgoPost post = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
+
+        // Verify ownership
+        if (!post.getNgoId().equals(ngoId)) {
+            throw new UnauthorizedException("You are not authorized to delete this post");
+        }
+
+        repository.delete(post);
+    }
+
+    private NgoPostResponse mapToResponse(NgoPost post) {
+        NgoPostResponse response = new NgoPostResponse();
+        response.setId(post.getId());
+        response.setTitle(post.getTitle());
+        response.setDescription(post.getDescription());
+        response.setDomain(post.getDomain());
+        response.setLocation(post.getLocation());
+        response.setCity(post.getCity());
+        response.setState(post.getState());
+        response.setCountry(post.getCountry());
+        response.setEffortRequired(post.getEffortRequired());
+        response.setVolunteersNeeded(post.getVolunteersNeeded());
+        response.setStartDate(post.getStartDate());
+        response.setEndDate(post.getEndDate());
+        response.setNgoId(post.getNgoId());
+        response.setContactEmail(post.getContactEmail());
+        response.setContactPhone(post.getContactPhone());
+        response.setStatus(post.getStatus());
+        response.setCreatedAt(post.getCreatedAt());
+        response.setUpdatedAt(post.getUpdatedAt());
+        return response;
+    }
+}
+
