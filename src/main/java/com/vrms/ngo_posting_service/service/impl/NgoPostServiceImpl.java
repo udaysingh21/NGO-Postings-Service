@@ -5,6 +5,7 @@ import com.vrms.ngo_posting_service.dto.NgoPostResponse;
 import com.vrms.ngo_posting_service.dto.UpdateNgoPostRequest;
 import com.vrms.ngo_posting_service.entity.NgoPost;
 import com.vrms.ngo_posting_service.entity.PostStatus;
+import com.vrms.ngo_posting_service.exception.ForbiddenException;
 import com.vrms.ngo_posting_service.exception.ResourceNotFoundException;
 import com.vrms.ngo_posting_service.exception.UnauthorizedException;
 import com.vrms.ngo_posting_service.repository.NgoPostRepository;
@@ -89,15 +90,14 @@ public class NgoPostServiceImpl implements NgoPostService {
     }
 
     @Override
-    public NgoPostResponse updatePost(Long id, UpdateNgoPostRequest request, Long ngoId) {
+    public NgoPostResponse updatePost(Long id, UpdateNgoPostRequest request, Long userId,String role) {
         NgoPost post = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
 
-        // Verify ownership
-        if (!post.getNgoId().equals(ngoId)) {
-            throw new UnauthorizedException("You are not authorized to update this post");
-        }
-
+          // ADMIN can update any post, NGO can only update their own
+    if ("NGO".equals(role) && !post.getNgoId().equals(userId)) {
+        throw new ForbiddenException("You are not authorized to update this posting");
+    }
         // Update fields if provided
         if (request.getTitle() != null) post.setTitle(request.getTitle());
         if (request.getDescription() != null) post.setDescription(request.getDescription());
@@ -118,18 +118,17 @@ public class NgoPostServiceImpl implements NgoPostService {
         return mapToResponse(updated);
     }
 
-    @Override
-    public void deletePost(Long id, Long ngoId) {
-        NgoPost post = repository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
+        @Override
+        public void deletePost(Long id, Long userId,String role) {
+            NgoPost post = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
 
-        // Verify ownership
-        if (!post.getNgoId().equals(ngoId)) {
-            throw new UnauthorizedException("You are not authorized to delete this post");
+            // ADMIN can delete any post, NGO can only delete their own
+            if ("NGO".equals(role) && !post.getNgoId().equals(userId)) {
+                throw new ForbiddenException("You are not authorized to delete this posting");
+            }
+            repository.delete(post);
         }
-
-        repository.delete(post);
-    }
 
     private NgoPostResponse mapToResponse(NgoPost post) {
         NgoPostResponse response = new NgoPostResponse();

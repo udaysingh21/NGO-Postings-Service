@@ -15,6 +15,6 @@ public interface NgoPostService {
     Page<NgoPostResponse> getPostsByDomain(String domain, Pageable pageable);
     Page<NgoPostResponse> getPostsByCity(String city, Pageable pageable);
     Page<NgoPostResponse> searchPosts(String keyword, Pageable pageable);
-    NgoPostResponse updatePost(Long id, UpdateNgoPostRequest request, Long ngoId);
-    void deletePost(Long id, Long ngoId);
+    NgoPostResponse updatePost(Long id, UpdateNgoPostRequest request, Long ngoId,String role);
+    void deletePost(Long id, Long ngoId,String role);
 }

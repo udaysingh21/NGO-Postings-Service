@@ -1,6 +1,10 @@
+com/vrms/ngo_posting_service/exception/ForbiddenException.class
 com/vrms/ngo_posting_service/entity/PostStatus.class
 com/vrms/ngo_posting_service/dto/UpdateNgoPostRequest.class
 com/vrms/ngo_posting_service/entity/NgoPost.class
+com/vrms/ngo_posting_service/configs/JwtAuthenticationFilter.class
+com/vrms/ngo_posting_service/configs/SecurityConfig.class
+com/vrms/ngo_posting_service/configs/JwtUtil.class
 com/vrms/ngo_posting_service/controller/NgoPostController.class
 com/vrms/ngo_posting_service/exception/GlobalExceptionHandler.class
 com/vrms/ngo_posting_service/service/NgoPostService.class
@@ -10,5 +14,6 @@ com/vrms/ngo_posting_service/NgoPostingServiceApplication.class
 com/vrms/ngo_posting_service/repository/NgoPostRepository.class
 com/vrms/ngo_posting_service/exception/ErrorResponse.class
 com/vrms/ngo_posting_service/dto/NgoPostResponse.class
+com/vrms/ngo_posting_service/util/JwtTestGenerator.class
 com/vrms/ngo_posting_service/dto/CreateNgoPostRequest.class
 com/vrms/ngo_posting_service/exception/ResourceNotFoundException.class
