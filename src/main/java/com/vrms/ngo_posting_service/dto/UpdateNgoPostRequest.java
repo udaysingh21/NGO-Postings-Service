@@ -20,6 +20,7 @@ public class UpdateNgoPostRequest {
     private String city;
     private String state;
     private String country;
+    private String pincode;
     private String effortRequired;
     
     @Min(1)

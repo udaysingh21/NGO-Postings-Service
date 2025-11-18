@@ -11,6 +11,10 @@ import com.vrms.ngo_posting_service.exception.UnauthorizedException;
 import com.vrms.ngo_posting_service.repository.NgoPostRepository;
 import com.vrms.ngo_posting_service.service.NgoPostService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +37,7 @@ public class NgoPostServiceImpl implements NgoPostService {
         post.setCity(request.getCity());
         post.setState(request.getState());
         post.setCountry(request.getCountry());
+        post.setPincode(request.getPincode());
         post.setEffortRequired(request.getEffortRequired());
         post.setVolunteersNeeded(request.getVolunteersNeeded());
         post.setStartDate(request.getStartDate());
@@ -81,6 +86,13 @@ public class NgoPostServiceImpl implements NgoPostService {
         return repository.findByCity(city, pageable)
             .map(this::mapToResponse);
     }
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NgoPostResponse> getPostsByPincode(String pincode, Pageable pageable) {
+        return repository.findByPincode(pincode, pageable)
+            .map(this::mapToResponse);
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -104,6 +116,7 @@ public class NgoPostServiceImpl implements NgoPostService {
         if (request.getDomain() != null) post.setDomain(request.getDomain());
         if (request.getLocation() != null) post.setLocation(request.getLocation());
         if (request.getCity() != null) post.setCity(request.getCity());
+        if (request.getPincode() != null) post.setPincode(request.getPincode());
         if (request.getState() != null) post.setState(request.getState());
         if (request.getCountry() != null) post.setCountry(request.getCountry());
         if (request.getEffortRequired() != null) post.setEffortRequired(request.getEffortRequired());
@@ -129,6 +142,35 @@ public class NgoPostServiceImpl implements NgoPostService {
             }
             repository.delete(post);
         }
+@Override
+    @Transactional
+    public void registerVolunteer(Long postingId, Long volunteerId) {
+        NgoPost post = repository.findById(postingId)
+            .orElseThrow(() -> new ResourceNotFoundException("Posting not found with id: " + postingId));
+
+        Set<Long> registeredVolunteers = post.getVolunteersRegistered();
+        if (registeredVolunteers == null) {
+            registeredVolunteers = new HashSet<>();
+            post.setVolunteersRegistered(registeredVolunteers);
+        }
+
+        if (registeredVolunteers.contains(volunteerId)) {
+            throw new IllegalStateException("Volunteer already registered");
+        }
+
+        if (post.getVolunteersSpotLeft() == null) {
+            post.setVolunteersSpotLeft(post.getVolunteersNeeded());
+        }
+
+        if (post.getVolunteersSpotLeft() <= 0) {
+            throw new IllegalStateException("No spots left for this posting");
+        }
+
+        registeredVolunteers.add(volunteerId);
+        post.setVolunteersSpotLeft(post.getVolunteersSpotLeft() - 1);
+
+        repository.save(post);
+    }
 
     private NgoPostResponse mapToResponse(NgoPost post) {
         NgoPostResponse response = new NgoPostResponse();
@@ -140,8 +182,11 @@ public class NgoPostServiceImpl implements NgoPostService {
         response.setCity(post.getCity());
         response.setState(post.getState());
         response.setCountry(post.getCountry());
+        response.setPincode(post.getPincode());  // map pincode
         response.setEffortRequired(post.getEffortRequired());
         response.setVolunteersNeeded(post.getVolunteersNeeded());
+        response.setVolunteersSpotLeft(post.getVolunteersSpotLeft());  // map spots left
+        response.setVolunteersRegistered(post.getVolunteersRegistered());  // map volunteer IDs
         response.setStartDate(post.getStartDate());
         response.setEndDate(post.getEndDate());
         response.setNgoId(post.getNgoId());

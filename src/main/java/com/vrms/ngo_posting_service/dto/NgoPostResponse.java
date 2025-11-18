@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 public class NgoPostResponse {
@@ -16,6 +17,7 @@ public class NgoPostResponse {
     private String city;
     private String state;
     private String country;
+    private String pincode;
     private String effortRequired;
     private Integer volunteersNeeded;
     private LocalDate startDate;
@@ -26,4 +28,7 @@ public class NgoPostResponse {
     private PostStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer volunteersSpotLeft;
+    private Set<Long> volunteersRegistered;
+
 }

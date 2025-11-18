@@ -29,6 +29,9 @@ public interface NgoPostRepository extends JpaRepository<NgoPost, Long> {
 
     // Find posts by location (city)
     Page<NgoPost> findByCity(String city, Pageable pageable);
+    
+    // Find posts by location (pincode)
+    Page<NgoPost> findByPincode(String pincode, Pageable pageable);
 
     // Complex query: Find posts by domain and city
     Page<NgoPost> findByDomainAndCity(String domain, String city, Pageable pageable);

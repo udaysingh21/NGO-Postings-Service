@@ -6,9 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Entity
@@ -37,6 +38,7 @@ public class NgoPost {
     private String city;
     private String state;
     private String country;
+    private String pincode; 
 
     @Column(name = "effort_required")
     private String effortRequired; // e.g., "5 hours", "2 days"
@@ -62,6 +64,22 @@ public class NgoPost {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PostStatus status = PostStatus.ACTIVE;
+
+    // New fields
+    @ElementCollection
+    @CollectionTable(name = "ngo_post_volunteers", joinColumns = @JoinColumn(name = "posting_id"))
+    @Column(name = "volunteer_id")
+    private Set<Long> volunteersRegistered = new HashSet<>();
+
+    @Column(name = "volunteers_spot_left")
+    private Integer volunteersSpotLeft;
+
+    @PrePersist
+    public void prePersist() {
+        if (volunteersSpotLeft == null && volunteersNeeded != null) {
+            volunteersSpotLeft = volunteersNeeded;
+        }
+    }
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -25,6 +25,9 @@ public class CreateNgoPostRequest {
     private String city;
     private String state;
     private String country;
+    
+    @NotBlank(message = "Pincode is required")
+    private String pincode;
 
     private String effortRequired;
 

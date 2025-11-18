@@ -164,4 +164,26 @@ public class NgoPostController {
         service.deletePost(id, userId, role);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{postingId}/register/{volunteerId}")
+    public ResponseEntity<Void> registerVolunteer(
+        @PathVariable Long postingId,
+        @PathVariable Long volunteerId,
+        HttpServletRequest httpRequest) {
+
+    Long userId = (Long) httpRequest.getAttribute("userId");
+    String role = (String) httpRequest.getAttribute("role");
+
+
+    // Optional: Ensure the authenticated user is the volunteer or has admin rights
+    if (!volunteerId.equals(userId) && !"ADMIN".equals(role)) {
+        throw new ForbiddenException("You can only register yourself or have ADMIN rights");
+    }
+
+    log.info("REGISTER VOLUNTEER - PostingId: {}, VolunteerId: {}, UserId: {}, Role: {}", 
+        postingId, volunteerId, userId, role);
+
+    service.registerVolunteer(postingId, volunteerId);
+    return ResponseEntity.ok().build();
+}
 }
