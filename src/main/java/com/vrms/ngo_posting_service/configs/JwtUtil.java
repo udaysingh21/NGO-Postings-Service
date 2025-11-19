@@ -21,19 +21,18 @@ public class JwtUtil {
      * Extract user ID from JWT token (from User Service)
      */
     public Long extractUserId(String token) {
-        try {
-            Claims claims = extractAllClaims(token);
-            Object userIdObj = claims.get("userId");
-            if (userIdObj instanceof Integer) {
-                return ((Integer) userIdObj).longValue();
-            }
-            return (Long) userIdObj;
-        } catch (Exception e) {
-            log.error("Error extracting userId from token", e);
-            return null;
+        Claims claims = extractAllClaims(token);
+        Object userIdObj = claims.get("userId");
+        
+        if (userIdObj instanceof Number) {
+            return ((Number) userIdObj).longValue();
+        } else if (userIdObj instanceof String) {
+            return Long.parseLong((String) userIdObj);
         }
+        
+        return null;
     }
-
+    
     /**
      * Extract user role from JWT token (from User Service)
      * Expects role claim in token like: "NGO", "ADMIN", "VOLUNTEER"
