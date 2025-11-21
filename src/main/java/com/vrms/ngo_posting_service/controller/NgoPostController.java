@@ -5,6 +5,8 @@ import com.vrms.ngo_posting_service.dto.NgoPostResponse;
 import com.vrms.ngo_posting_service.dto.UpdateNgoPostRequest;
 import com.vrms.ngo_posting_service.exception.ForbiddenException;
 import com.vrms.ngo_posting_service.service.NgoPostService;
+
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -186,4 +189,25 @@ public class NgoPostController {
     service.registerVolunteer(postingId, volunteerId);
     return ResponseEntity.ok().build();
 }
+@DeleteMapping("/{postingId}/unregister/{volunteerId}")
+public ResponseEntity<Void> unregisterVolunteer(
+    @PathVariable Long postingId,
+    @PathVariable Long volunteerId,
+    HttpServletRequest httpRequest) {
+
+Long userId = (Long) httpRequest.getAttribute("userId");
+String role = (String) httpRequest.getAttribute("role");
+
+
+// Optional: Ensure the authenticated user is the volunteer or has admin rights
+if (!volunteerId.equals(userId) && !"ADMIN".equals(role)) {
+    throw new ForbiddenException("You can only register yourself or have ADMIN rights");
 }
+
+log.info("➖ Unregistering volunteer {} from posting {}", volunteerId, postingId);
+        service.unregisterVolunteer(postingId, volunteerId);
+        return ResponseEntity.ok().build();
+}
+
+}
+

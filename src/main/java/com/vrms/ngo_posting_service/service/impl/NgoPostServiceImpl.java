@@ -11,6 +11,7 @@ import com.vrms.ngo_posting_service.exception.UnauthorizedException;
 import com.vrms.ngo_posting_service.repository.NgoPostRepository;
 import com.vrms.ngo_posting_service.service.NgoPostService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -171,6 +173,38 @@ public class NgoPostServiceImpl implements NgoPostService {
 
         repository.save(post);
     }
+
+
+    @Override
+    @Transactional
+    public void unregisterVolunteer(Long postingId, Long volunteerId) {
+        log.info(" Unregistering volunteer {} from posting {}", volunteerId, postingId);
+        
+        NgoPost post = repository.findById(postingId)
+            .orElseThrow(() -> new ResourceNotFoundException("Posting not found with id: " + postingId));
+
+        Set<Long> registeredVolunteers = post.getVolunteersRegistered();
+        
+        // Check if volunteer is registered
+        if (registeredVolunteers == null || !registeredVolunteers.contains(volunteerId)) {
+            log.warn(" Volunteer {} not registered for posting {}", volunteerId, postingId);
+            throw new IllegalStateException("Volunteer not registered for this posting");
+        }
+
+        // Remove volunteer from registered list
+        registeredVolunteers.remove(volunteerId);
+        
+        // Increase available spot
+        if (post.getVolunteersSpotLeft() != null) {
+            post.setVolunteersSpotLeft(post.getVolunteersSpotLeft() + 1);
+            log.debug(" Increased volunteersSpotLeft: {} -> {}", 
+                    post.getVolunteersSpotLeft() - 1, post.getVolunteersSpotLeft());
+        }
+
+        repository.save(post);
+        log.info(" Successfully unregistered volunteer {} from posting {}", volunteerId, postingId);
+    }
+
 
     private NgoPostResponse mapToResponse(NgoPost post) {
         NgoPostResponse response = new NgoPostResponse();

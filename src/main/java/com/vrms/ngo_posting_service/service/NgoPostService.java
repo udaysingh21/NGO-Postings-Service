@@ -19,5 +19,6 @@ public interface NgoPostService {
     NgoPostResponse updatePost(Long id, UpdateNgoPostRequest request, Long ngoId,String role);
     void deletePost(Long id, Long ngoId,String role);
     void registerVolunteer(Long postingId, Long volunteerId);
+    void unregisterVolunteer(Long postingId, Long volunteerId);
 
 }
