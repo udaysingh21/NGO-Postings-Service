@@ -20,6 +20,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(
+    origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:8080"},
+    allowCredentials = "true",
+    allowedHeaders = "*",
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}
+)
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/postings")
